@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auron Systems — Velasco Visions CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f8f8f6;color:#111;min-height:100vh}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.as-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid #e5e5e3;background:#fff;position:sticky;top:0;z-index:10}
+.as-logo{font-size:15px;font-weight:500;color:#111;letter-spacing:0.04em}
+.as-logo span{color:#7F77DD}
+.as-tabs{display:flex;gap:4px}
+.as-tab{padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;font-family:inherit}
+.as-tab:hover{background:#f0f0ee}
+.as-tab.active{background:#f0f0ee;color:#111;font-weight:500}
+.as-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#7F77DD;color:#fff;font-size:10px;font-weight:500;margin-left:4px;vertical-align:middle}
+.as-body{padding:24px;max-width:1200px;margin:0 auto}
+.as-panel{display:none}
+.as-panel.active{display:block}
+
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.metric{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:16px}
+.metric-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.metric-val{font-size:26px;font-weight:500;color:#111}
+.metric-sub{font-size:12px;color:#888;margin-top:3px}
+.metric-sub.up{color:#1D9E75}
+.metric-sub.warn{color:#BA7517}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:18px}
+.section-title{font-size:13px;font-weight:500;color:#111;margin-bottom:14px}
+
+.pipeline-wrap{overflow-x:auto;margin-bottom:24px;padding-bottom:8px}
+.pipeline{display:flex;gap:10px;min-width:1000px}
+.stage{flex:1;min-width:130px}
+.stage-head{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;padding:8px 10px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center}
+.stage-body{background:#f8f8f6;border:1px solid #e5e5e3;border-top:none;border-radius:0 0 8px 8px;padding:8px;min-height:100px;display:flex;flex-direction:column;gap:6px}
+.lead-card{background:#fff;border:1px solid #e5e5e3;border-radius:8px;padding:9px 11px;cursor:pointer}
+.lead-card:hover{border-color:#bbb}
+.lead-name{font-size:12px;font-weight:500;color:#111}
+.lead-biz{font-size:11px;color:#888;margin-top:1px}
+.lead-val{font-size:11px;color:#1D9E75;font-weight:500;margin-top:3px}
+.move-btns{display:flex;gap:4px;margin-top:6px}
+.move-btn{font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid #e5e5e3;background:transparent;color:#666;cursor:pointer;font-family:inherit}
+.move-btn:hover{background:#f0f0ee}
+
+.s0-head{background:#E6F1FB;color:#0C447C}
+.s1-head{background:#FAEEDA;color:#633806}
+.s2-head{background:#EEEDFE;color:#3C3489}
+.s3-head{background:#EAF3DE;color:#3B6D11}
+.s4-head{background:#E1F5EE;color:#0F6E56}
+.s5-head{background:#CECBF6;color:#26215C}
+.s6-head{background:#9FE1CB;color:#04342C}
+.s7-head{background:#D3D1C7;color:#2C2C2A}
+
+.recent-table{width:100%;border-collapse:collapse;font-size:13px}
+.recent-table th{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#888;padding:8px 10px;text-align:left;border-bottom:1px solid #e5e5e3;font-weight:400}
+.recent-table td{padding:10px;border-bottom:1px solid #f0f0ee;color:#111}
+.recent-table tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.pill-new{background:#E6F1FB;color:#0C447C}
+.pill-contacted{background:#FAEEDA;color:#633806}
+.pill-won{background:#E1F5EE;color:#0F6E56}
+.pill-proposal{background:#EEEDFE;color:#3C3489}
+.pill-progress{background:#9FE1CB;color:#04342C}
+
+.form-section{max-width:560px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;color:#555;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{font-size:13px;padding:9px 11px;border-radius:8px;border:1px solid #d5d5d3;background:#fff;color:#111;width:100%;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#7F77DD}
+.form-group textarea{height:80px;resize:vertical}
+.submit-btn{width:100%;padding:11px;border-radius:8px;background:#7F77DD;color:#fff;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
+.submit-btn:hover{background:#534AB7}
+.success-msg{display:none;background:#E1F5EE;border:1px solid #5DCAA5;border-radius:8px;padding:14px;text-align:center;color:#085041;font-size:13px;margin-top:12px}
+
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.client-card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:16px}
+.client-avatar{width:38px;height:38px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#3C3489;flex-shrink:0}
+.client-name{font-size:14px;font-weight:500;color:#111}
+.client-biz{font-size:12px;color:#888}
+.client-notes{margin-top:10px;padding:8px;background:#f8f8f6;border-radius:6px;font-size:11px;color:#888;line-height:1.5}
+
+.activity-list{display:flex;flex-direction:column;gap:10px}
+.activity-item{display:flex;align-items:flex-start;gap:10px;font-size:13px}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.activity-time{font-size:11px;color:#aaa;margin-top:2px}
+
+.rev-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px}
+.rev-label{width:40px;color:#888;flex-shrink:0}
+.rev-track{flex:1;height:8px;background:#f0f0ee;border-radius:4px;overflow:hidden}
+.rev-fill{height:100%;border-radius:4px;background:#7F77DD}
+.rev-amt{width:55px;text-align:right;font-weight:500;color:#111}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:22px;width:320px;border:1px solid #e5e5e3}
+.modal-title{font-size:14px;font-weight:500;margin-bottom:12px;color:#111}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:#888;margin-top:-3px;line-height:1}
+.modal select{width:100%;padding:9px;border-radius:8px;border:1px solid #d5d5d3;font-size:13px;margin-bottom:12px;font-family:inherit}
+.modal-btn{width:100%;padding:10px;background:#7F77DD;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit}
+.modal-btn:hover{background:#534AB7}
+
+@media(max-width:700px){
+  .metric-grid{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:1}
+  .as-tabs{gap:2px}
+  .as-tab{padding:6px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<h1 class="sr-only">Auron Systems CRM — Velasco Visions admin dashboard with lead pipeline and intake form</h1>
+
+<nav class="as-nav">
+  <div class="as-logo"><span>Auron</span> Systems</div>
+  <div class="as-tabs">
+    <button class="as-tab active" onclick="showPanel('dashboard',this)">Dashboard</button>
+    <button class="as-tab" onclick="showPanel('pipeline',this)">Pipeline <span class="as-badge" id="lead-count">8</span></button>
+    <button class="as-tab" onclick="showPanel('intake',this)">New lead</button>
+    <button class="as-tab" onclick="showPanel('clients',this)">Clients</button>
+  </div>
+  <div style="font-size:12px;color:#888">Velasco Visions ▾</div>
+</nav>
+
+<div class="as-body">
+
+  <div class="as-panel active" id="panel-dashboard">
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Active revenue</div><div class="metric-val" id="m-revenue">$4,200</div><div class="metric-sub up" id="m-rev-sub">3 retainer clients</div></div>
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-val" id="m-leads">8</div><div class="metric-sub">In pipeline</div></div>
+      <div class="metric"><div class="metric-label">Won this month</div><div class="metric-val" id="m-won">2</div><div class="metric-sub up">Closed deals</div></div>
+      <div class="metric"><div class="metric-label">Pipeline value</div><div class="metric-val" id="m-pipeline">$9,800</div><div class="metric-sub warn">Estimated potential</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">Revenue by month</div>
+        <div class="rev-row"><span class="rev-label">Jan</span><div class="rev-track"><div class="rev-fill" style="width:20%"></div></div><span class="rev-amt">$800</span></div>
+        <div class="rev-row"><span class="rev-label">Feb</span><div class="rev-track"><div class="rev-fill" style="width:30%"></div></div><span class="rev-amt">$1,200</span></div>
+        <div class="rev-row"><span class="rev-label">Mar</span><div class="rev-track"><div class="rev-fill" style="width:45%"></div></div><span class="rev-amt">$1,800</span></div>
+        <div class="rev-row"><span class="rev-label">Apr</span><div class="rev-track"><div class="rev-fill" style="width:10%"></div></div><span class="rev-amt">$400</span></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Recent activity</div>
+        <div class="activity-list" id="activity-list">
+          <div class="activity-item"><div class="activity-dot" style="background:#7F77DD"></div><div><div>Maria R. moved to Proposal Sent</div><div class="activity-time">2 hours ago</div></div></div>
+          <div class="activity-item"><div class="activity-dot" style="background:#1D9E75"></div><div><div>DJ Friend marked as Won — $500</div><div class="activity-time">Yesterday</div></div></div>
+          <div class="activity-item"><div class="activity-dot" style="background:#378ADD"></div><div><div>New lead: Carlos Auto Group</div><div class="activity-time">2 days ago</div></div></div>
+          <div class="activity-item"><div class="activity-dot" style="background:#EF9F27"></div><div><div>Invoice #003 sent to Reno Renovations</div><div class="activity-time">3 days ago</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Recent leads</div>
+      <table class="recent-table"><thead><tr><th>Name</th><th>Business</th><th>Service</th><th>Value</th><th>Stage</th></tr></thead><tbody id="recent-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="as-panel" id="panel-pipeline">
+    <div class="section-title" style="margin-bottom:16px;font-size:14px">Lead pipeline — click a lead to move it between stages</div>
+    <div class="pipeline-wrap"><div class="pipeline" id="pipeline-board"></div></div>
+  </div>
+
+  <div class="as-panel" id="panel-intake">
+    <div class="form-section">
+      <div class="card">
+        <div class="section-title" style="font-size:15px;margin-bottom:18px">New lead intake</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">First name</label><input type="text" id="f-first" placeholder="John"></div>
+          <div class="form-group"><label class="form-label">Last name</label><input type="text" id="f-last" placeholder="Smith"></div>
+          <div class="form-group"><label class="form-label">Email</label><input type="email" id="f-email" placeholder="john@business.com"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="f-phone" placeholder="(440) 555-0000"></div>
+          <div class="form-group"><label class="form-label">Business name</label><input type="text" id="f-biz" placeholder="Smith Renovations"></div>
+          <div class="form-group"><label class="form-label">Business type</label>
+            <select id="f-type"><option value="">Select...</option><option>Realtor</option><option>Home renovation</option><option>Car dealership</option><option>Restaurant</option><option>DJ / Event artist</option><option>Other</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Service interested in</label>
+            <select id="f-service"><option value="">Select...</option><option>Starter retainer — $800/mo</option><option>Growth retainer — $1,400/mo</option><option>Full service — $2,500/mo</option><option>Event coverage</option><option>Brand identity kit</option><option>Auron automation</option><option>Custom / not sure yet</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Estimated value</label><input type="text" id="f-value" placeholder="$800"></div>
+          <div class="form-group full"><label class="form-label">How did they find you?</label>
+            <select id="f-source"><option value="">Select...</option><option>Instagram DM</option><option>Facebook</option><option>In-person / referral</option><option>Cold email</option><option>Existing client referral</option><option>K&K Studio connection</option><option>Other</option></select>
+          </div>
+          <div class="form-group full"><label class="form-label">Notes</label><textarea id="f-notes" placeholder="Any relevant details..."></textarea></div>
+        </div>
+        <button class="submit-btn" onclick="submitLead()">Add lead to pipeline</button>
+        <div class="success-msg" id="success-msg">Lead added! Check the Pipeline tab to see them in the New Lead stage.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="as-panel" id="panel-clients">
+    <div class="clients-grid" id="clients-grid"></div>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modal-title">Move lead</div>
+    <div style="font-size:12px;color:#888;margin-bottom:12px" id="modal-sub"></div>
+    <label class="form-label" style="display:block;margin-bottom:6px">Move to stage</label>
+    <select id="modal-stage">
+      <option value="0">New Lead</option><option value="1">Contacted</option><option value="2">Call Booked</option>
+      <option value="3">Proposal Sent</option><option value="4">Won</option><option value="5">In Progress</option>
+      <option value="6">Delivered</option><option value="7">Follow-up</option>
+    </select>
+    <button class="modal-btn" onclick="confirmMove()">Move lead</button>
+  </div>
+</div>
+
+<script>
+const STAGES=["New Lead","Contacted","Call Booked","Proposal Sent","Won","In Progress","Delivered","Follow-up"];
+const STAGE_CLS=["s0","s1","s2","s3","s4","s5","s6","s7"];
+const PILL_CLS=["pill-new","pill-contacted","pill-proposal","pill-proposal","pill-won","pill-progress","pill-won","pill-contacted"];
+
+let leads=[
+  {id:1,first:"Maria",last:"Rodriguez",biz:"Rodriguez Realty",type:"Realtor",service:"Growth retainer — $1,400/mo",value:"$1,400",source:"Instagram DM",stage:3,notes:"Interested in monthly content",date:"Apr 6"},
+  {id:2,first:"DJ",last:"Friend",biz:"DJ Sets",type:"DJ / Event artist",service:"Event coverage",value:"$500",source:"Personal",stage:4,notes:"Summer events Jun–Sep",date:"Apr 5"},
+  {id:3,first:"Carlos",last:"Mendez",biz:"Carlos Auto Group",type:"Car dealership",service:"Full service — $2,500/mo",value:"$2,500",source:"In-person / referral",stage:0,notes:"Premium dealership",date:"Apr 4"},
+  {id:4,first:"Tony",last:"Kim",biz:"Reno Renovations",type:"Home renovation",service:"Starter retainer — $800/mo",value:"$800",source:"Facebook",stage:5,notes:"Active client, month 2",date:"Mar 28"},
+  {id:5,first:"Sandra",last:"White",biz:"White Homes",type:"Realtor",service:"Starter retainer — $800/mo",value:"$800",source:"Instagram DM",stage:5,notes:"Active client",date:"Mar 20"},
+  {id:6,first:"Mike",last:"Torres",biz:"Torres Kitchen Co",type:"Home renovation",service:"Brand identity kit",value:"$1,500",source:"Cold email",stage:1,notes:"Interested in brand kit first",date:"Apr 7"},
+  {id:7,first:"Lena",last:"Park",biz:"Park Listings",type:"Realtor",service:"Growth retainer — $1,400/mo",value:"$1,400",source:"K&K Studio connection",stage:2,notes:"Call Friday",date:"Apr 6"},
+  {id:8,first:"Dario",last:"Ruiz",biz:"Ruiz Eats",type:"Restaurant",service:"Custom / not sure yet",value:"$600",source:"Instagram DM",stage:0,notes:"Small restaurant focus",date:"Apr 8"},
+];
+
+let selectedId=null;
+
+function parseVal(v){return parseInt((v||'0').replace(/[$,]/g,''))||0;}
+function totalRevenue(){return leads.filter(l=>l.stage===4||l.stage===5||l.stage===6).reduce((a,l)=>a+parseVal(l.value),0);}
+function pipelineValue(){return leads.reduce((a,l)=>a+parseVal(l.value),0);}
+
+function showPanel(name,btn){
+  document.querySelectorAll('.as-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.as-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='pipeline')renderPipeline();
+  if(name==='clients')renderClients();
+  if(name==='dashboard')renderDashboard();
+}
+
+function renderDashboard(){
+  document.getElementById('m-revenue').textContent='$'+totalRevenue().toLocaleString();
+  document.getElementById('m-leads').textContent=leads.length;
+  document.getElementById('m-won').textContent=leads.filter(l=>l.stage===4).length;
+  document.getElementById('m-pipeline').textContent='$'+pipelineValue().toLocaleString();
+  document.getElementById('lead-count').textContent=leads.length;
+  const tbody=document.getElementById('recent-tbody');
+  tbody.innerHTML='';
+  leads.slice().reverse().slice(0,6).forEach(l=>{
+    tbody.innerHTML+=`<tr><td>${l.first} ${l.last}</td><td style="color:#888">${l.biz}</td><td style="color:#888;font-size:12px">${l.service}</td><td style="color:#1D9E75;font-weight:500">${l.value}</td><td><span class="pill ${PILL_CLS[l.stage]}">${STAGES[l.stage]}</span></td></tr>`;
+  });
+}
+
+function renderPipeline(){
+  const board=document.getElementById('pipeline-board');
+  board.innerHTML='';
+  STAGES.forEach((sName,si)=>{
+    const stLeads=leads.filter(l=>l.stage===si);
+    const col=document.createElement('div');
+    col.className='stage';
+    col.innerHTML=`<div class="stage-head ${STAGE_CLS[si]}-head">${sName}<span>${stLeads.length}</span></div><div class="stage-body">${stLeads.map(l=>`<div class="lead-card" onclick="openModal(${l.id})"><div class="lead-name">${l.first} ${l.last}</div><div class="lead-biz">${l.biz}</div><div class="lead-val">${l.value}</div><div class="move-btns">${si>0?`<button class="move-btn" onclick="event.stopPropagation();quickMove(${l.id},-1)">← Back</button>`:''} ${si<7?`<button class="move-btn" onclick="event.stopPropagation();quickMove(${l.id},1)">Next →</button>`:''}</div></div>`).join('')}</div>`;
+    board.appendChild(col);
+  });
+}
+
+function renderClients(){
+  const clients=leads.filter(l=>l.stage===4||l.stage===5||l.stage===6);
+  const grid=document.getElementById('clients-grid');
+  if(!clients.length){grid.innerHTML='<div style="color:#888;font-size:13px;padding:20px">No active clients yet. Move leads to Won to see them here.</div>';return;}
+  grid.innerHTML=clients.map(l=>{
+    const initials=(l.first[0]||'')+(l.last[0]||'');
+    const stageLabel={4:'Won',5:'In Progress',6:'Delivered'}[l.stage]||'';
+    const pillCls={4:'pill-won',5:'pill-progress',6:'pill-won'}[l.stage]||'pill-won';
+    return `<div class="client-card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div class="client-avatar">${initials}</div><div><div class="client-name">${l.first} ${l.last}</div><div class="client-biz">${l.biz}</div></div></div><div style="font-size:12px;color:#888;margin-bottom:3px">${l.type}</div><div style="font-size:12px;color:#888;margin-bottom:10px">${l.service}</div><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:500;color:#1D9E75">${l.value}</span><span class="pill ${pillCls}">${stageLabel}</span></div>${l.notes?`<div class="client-notes">${l.notes}</div>`:''}</div>`;
+  }).join('');
+}
+
+function openModal(id){
+  selectedId=id;
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  document.getElementById('modal-title').textContent='Move lead';
+  document.getElementById('modal-sub').textContent=l.first+' '+l.last+' — '+l.biz;
+  document.getElementById('modal-stage').value=l.stage;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+function confirmMove(){
+  const l=leads.find(x=>x.id===selectedId);
+  if(!l)return;
+  l.stage=parseInt(document.getElementById('modal-stage').value);
+  closeModal();
+  renderPipeline();
+  renderDashboard();
+}
+function quickMove(id,dir){
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  l.stage=Math.max(0,Math.min(7,l.stage+dir));
+  renderPipeline();
+  renderDashboard();
+}
+function submitLead(){
+  const first=document.getElementById('f-first').value.trim();
+  const biz=document.getElementById('f-biz').value.trim();
+  if(!first||!biz){alert('Name and business are required.');return;}
+  leads.unshift({id:Date.now(),first,last:document.getElementById('f-last').value.trim(),biz,type:document.getElementById('f-type').value,service:document.getElementById('f-service').value,value:document.getElementById('f-value').value||'TBD',source:document.getElementById('f-source').value,stage:0,notes:document.getElementById('f-notes').value,date:'Today'});
+  ['f-first','f-last','f-email','f-phone','f-biz','f-value','f-notes'].forEach(id=>document.getElementById(id).value='');
+  ['f-type','f-service','f-source'].forEach(id=>document.getElementById(id).value='');
+  const msg=document.getElementById('success-msg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',4000);
+  document.getElementById('lead-count').textContent=leads.length;
+  renderDashboard();
+}
+renderDashboard();
+</script>
+</body>
+</html>
