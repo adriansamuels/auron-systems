@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auron Systems — Phase 2</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f8f8f6;color:#111;min-height:100vh}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid #e5e5e3;background:#fff;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
+.logo{font-size:15px;font-weight:500;letter-spacing:0.04em}.logo span{color:#7F77DD}
+.nav-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{padding:7px 13px;border-radius:8px;font-size:13px;cursor:pointer;border:none;background:transparent;color:#666;font-family:inherit}
+.tab:hover{background:#f0f0ee}
+.tab.active{background:#f0f0ee;color:#111;font-weight:500}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:#7F77DD;color:#fff;font-size:10px;font-weight:600;margin-left:4px;vertical-align:middle;padding:0 4px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.sync-btn{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #e5e5e3;background:#fff;color:#555;cursor:pointer;font-family:inherit}
+.sync-btn:hover{background:#f0f0ee}
+.sync-indicator{font-size:12px;color:#888;display:flex;align-items:center;gap:5px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#1D9E75;flex-shrink:0}
+.sync-dot.syncing{background:#EF9F27;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.body{padding:24px;max-width:1300px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
+.metric{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:16px}
+.metric-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.metric-val{font-size:26px;font-weight:500;color:#111}
+.metric-sub{font-size:12px;color:#888;margin-top:3px}
+.metric-sub.up{color:#1D9E75}.metric-sub.warn{color:#BA7517}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:18px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:500;color:#111;margin-bottom:14px}
+.two-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.pipeline-scroll{overflow-x:auto;padding-bottom:10px;margin-bottom:24px}
+.pipeline{display:flex;gap:10px;min-width:1100px}
+.stage-col{flex:1;min-width:128px}
+.stage-head{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;padding:8px 10px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center}
+.stage-body{background:#f8f8f6;border:1px solid #e5e5e3;border-top:none;border-radius:0 0 8px 8px;padding:8px;min-height:90px;display:flex;flex-direction:column;gap:6px}
+.lcard{background:#fff;border:1px solid #e5e5e3;border-radius:8px;padding:9px 11px;cursor:pointer}
+.lcard:hover{border-color:#7F77DD}
+.lcard-name{font-size:12px;font-weight:500;color:#111}
+.lcard-biz{font-size:11px;color:#888;margin-top:1px}
+.lcard-val{font-size:11px;color:#1D9E75;font-weight:500;margin-top:3px}
+.lcard-btns{display:flex;gap:4px;margin-top:6px}
+.mbtn{font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid #e5e5e3;background:transparent;color:#666;cursor:pointer;font-family:inherit}
+.mbtn:hover{background:#f0f0ee}
+.sh0{background:#E6F1FB;color:#0C447C}.sh1{background:#FAEEDA;color:#633806}
+.sh2{background:#EEEDFE;color:#3C3489}.sh3{background:#EAF3DE;color:#3B6D11}
+.sh4{background:#E1F5EE;color:#0F6E56}.sh5{background:#CECBF6;color:#26215C}
+.sh6{background:#9FE1CB;color:#04342C}.sh7{background:#D3D1C7;color:#2C2C2A}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#888;padding:8px 10px;text-align:left;border-bottom:1px solid #e5e5e3;font-weight:400}
+.tbl td{padding:10px;border-bottom:1px solid #f5f5f3;color:#111;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+.p0{background:#E6F1FB;color:#0C447C}.p1{background:#FAEEDA;color:#633806}
+.p2{background:#EEEDFE;color:#3C3489}.p3{background:#EAF3DE;color:#3B6D11}
+.p4{background:#E1F5EE;color:#0F6E56}.p5{background:#CECBF6;color:#26215C}
+.p6{background:#9FE1CB;color:#04342C}.p7{background:#D3D1C7;color:#2C2C2A}
+.form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.flabel{font-size:12px;color:#555;font-weight:500}
+.fg input,.fg select,.fg textarea{font-size:13px;padding:9px 11px;border-radius:8px;border:1px solid #d5d5d3;background:#fff;color:#111;width:100%;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#7F77DD;box-shadow:0 0 0 3px rgba(127,119,221,0.12)}
+.fg textarea{height:80px;resize:vertical}
+.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit}
+.btn-primary{background:#7F77DD;color:#fff}.btn-primary:hover{background:#534AB7}
+.btn-primary:disabled{background:#ccc;cursor:not-allowed}
+.btn-secondary{background:#fff;color:#555;border:1px solid #e5e5e3}.btn-secondary:hover{background:#f0f0ee}
+.btn-danger{background:#fff;color:#A32D2D;border:1px solid #f0c8c8;font-size:12px;padding:7px 12px}.btn-danger:hover{background:#FCEBEB}
+.btn-sm{padding:5px 10px;font-size:12px}
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.ccard{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:16px;cursor:pointer}
+.ccard:hover{border-color:#7F77DD}
+.avatar{width:40px;height:40px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#3C3489;flex-shrink:0}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-start;justify-content:center;padding-top:60px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:420px;max-width:94vw;border:1px solid #e5e5e3;margin-bottom:40px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-title{font-size:15px;font-weight:500;color:#111}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1;padding:0 2px}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f5f5f3;font-size:13px;gap:12px}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:#888;flex-shrink:0}
+.detail-val{color:#111;font-weight:500;text-align:right;word-break:break-word}
+.notes-box{background:#f8f8f6;border-radius:8px;padding:12px;font-size:13px;color:#555;line-height:1.6;margin-top:8px}
+.confirm-box{background:#FCEBEB;border:1px solid #f0c8c8;border-radius:8px;padding:12px;margin-top:12px;display:none}
+.confirm-box p{font-size:13px;color:#A32D2D;margin-bottom:10px}
+.confirm-box .btn-row{display:flex;gap:8px}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:10px;font-size:13px;z-index:400;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#085041;color:#E1F5EE}
+.toast.error{background:#A32D2D;color:#FCEBEB}
+.toast.info{background:#111;color:#fff}
+.empty{text-align:center;padding:48px 20px;color:#888;font-size:13px;line-height:1.8}
+.loading{text-align:center;padding:40px;color:#888;font-size:13px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid #e5e5e3;border-top-color:#7F77DD;border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:10px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.alert-banner{border-radius:8px;padding:12px 16px;font-size:13px;margin-bottom:16px;line-height:1.6}
+.alert-banner.error{background:#FCEBEB;border:1px solid #f0c8c8;color:#A32D2D}
+.alert-banner.success{background:#E1F5EE;border:1px solid #5DCAA5;color:#085041}
+@media(max-width:680px){
+  .metric-grid{grid-template-columns:1fr 1fr}
+  .two-col,.form-grid{grid-template-columns:1fr}
+  .fg.full{grid-column:1}
+}
+</style>
+</head>
+<body>
+<h1 class="sr-only">Auron Systems Phase 2 — CRM, pipeline, client profiles, and booking system connected to Supabase</h1>
+
+<nav class="nav">
+  <div class="logo"><span>Auron</span> Systems</div>
+  <div class="nav-tabs">
+    <button class="tab active" onclick="showPanel('dashboard',this)">Dashboard</button>
+    <button class="tab" onclick="showPanel('pipeline',this)">Pipeline <span class="badge" id="lead-badge">0</span></button>
+    <button class="tab" onclick="showPanel('clients',this)">Clients <span class="badge" id="client-badge">0</span></button>
+    <button class="tab" onclick="showPanel('bookings',this)">Bookings</button>
+    <button class="tab" onclick="showPanel('new-lead',this)">+ New lead</button>
+  </div>
+  <div class="nav-right">
+    <span class="sync-indicator"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Loading...</span></span>
+    <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
+  </div>
+</nav>
+
+<div class="body">
+  <div id="global-error" class="alert-banner error" style="display:none"></div>
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Active revenue</div><div class="metric-val" id="m-rev">—</div><div class="metric-sub up" id="m-rev-sub">—</div></div>
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-val" id="m-leads">—</div><div class="metric-sub">In pipeline</div></div>
+      <div class="metric"><div class="metric-label">Won deals</div><div class="metric-val" id="m-won">—</div><div class="metric-sub up">Closed</div></div>
+      <div class="metric"><div class="metric-label">Pipeline value</div><div class="metric-val" id="m-pipe">—</div><div class="metric-sub warn">Potential</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card"><div class="card-title">Pipeline breakdown</div><div id="dash-stages"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+      <div class="card"><div class="card-title">Recent leads</div><div id="dash-recent"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+    </div>
+    <div class="card"><div class="card-title">Upcoming bookings</div><div id="dash-bookings"><div class="loading"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="panel" id="panel-pipeline">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500">Lead pipeline</div>
+      <button class="btn btn-primary" onclick="showPanel('new-lead',null)">+ Add lead</button>
+    </div>
+    <div class="pipeline-scroll"><div class="pipeline" id="pipeline-board"><div class="loading" style="width:100%"><div class="spinner"></div> Loading...</div></div></div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="panel" id="panel-clients">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500">Active clients</div>
+      <button class="btn btn-secondary" onclick="syncAll()">↻ Refresh</button>
+    </div>
+    <div class="clients-grid" id="clients-grid"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="panel" id="panel-bookings">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500">Bookings & scheduling</div>
+      <button class="btn btn-primary" onclick="openBookingModal(null)">+ New booking</button>
+    </div>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr><th>Date & time</th><th>Type</th><th>Notes</th><th>Status</th><th></th></tr></thead>
+        <tbody id="bookings-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#888"><div class="spinner"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NEW LEAD -->
+  <div class="panel" id="panel-new-lead">
+    <div style="max-width:560px">
+      <div style="margin-bottom:16px;font-size:14px;font-weight:500">New lead intake</div>
+      <div id="lead-error" class="alert-banner error" style="display:none"></div>
+      <div id="lead-success" class="alert-banner success" style="display:none">Lead saved to Supabase successfully!</div>
+      <div class="card">
+        <div class="form-grid">
+          <div class="fg"><label class="flabel">First name *</label><input type="text" id="fl-first" placeholder="John"></div>
+          <div class="fg"><label class="flabel">Last name</label><input type="text" id="fl-last" placeholder="Smith"></div>
+          <div class="fg"><label class="flabel">Email</label><input type="email" id="fl-email" placeholder="john@business.com"></div>
+          <div class="fg"><label class="flabel">Phone</label><input type="tel" id="fl-phone" placeholder="(440) 555-0000"></div>
+          <div class="fg"><label class="flabel">Business name *</label><input type="text" id="fl-biz" placeholder="Smith Renovations"></div>
+          <div class="fg"><label class="flabel">Business type</label>
+            <select id="fl-type"><option value="">Select...</option><option>Realtor</option><option>Home renovation</option><option>Car dealership</option><option>Restaurant</option><option>DJ / Event artist</option><option>Local business</option><option>Other</option></select>
+          </div>
+          <div class="fg"><label class="flabel">Service</label>
+            <select id="fl-service"><option value="">Select...</option><option>Starter retainer — $800/mo</option><option>Growth retainer — $1,400/mo</option><option>Full service — $2,500/mo</option><option>Event coverage — $600</option><option>Brand identity kit — $1,500</option><option>Auron automation</option><option>Custom</option></select>
+          </div>
+          <div class="fg"><label class="flabel">Estimated value</label><input type="text" id="fl-value" placeholder="$800"></div>
+          <div class="fg full"><label class="flabel">Source</label>
+            <select id="fl-source"><option value="">Select...</option><option>Instagram DM</option><option>Facebook</option><option>In-person / referral</option><option>Cold email</option><option>Existing client referral</option><option>K&K Studio connection</option><option>Other</option></select>
+          </div>
+          <div class="fg full"><label class="flabel">Notes</label><textarea id="fl-notes" placeholder="Any relevant details..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" id="submit-btn" onclick="submitLead()">Save to database</button>
+          <button class="btn btn-secondary" onclick="showPanel('pipeline',null)">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEAD MODAL -->
+<div class="modal-bg" id="lead-modal" onclick="if(event.target===this)closeLModal()">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="lm-name">Lead</span><button class="modal-close" onclick="closeLModal()">×</button></div>
+    <div id="lm-body"></div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-bg" id="client-modal" onclick="if(event.target===this)closeCModal()">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="cm-name">Client</span><button class="modal-close" onclick="closeCModal()">×</button></div>
+    <div id="cm-body"></div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-bg" id="booking-modal" onclick="if(event.target===this)closeBModal()">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">New booking</span><button class="modal-close" onclick="closeBModal()">×</button></div>
+    <div id="bm-error" class="alert-banner error" style="display:none"></div>
+    <div class="form-grid" style="margin-top:4px">
+      <div class="fg full"><label class="flabel">Client (optional)</label><select id="bm-client"><option value="">No specific client</option></select></div>
+      <div class="fg"><label class="flabel">Date *</label><input type="date" id="bm-date"></div>
+      <div class="fg"><label class="flabel">Time</label><input type="time" id="bm-time" value="09:00"></div>
+      <div class="fg full"><label class="flabel">Type</label>
+        <select id="bm-type"><option>Discovery call</option><option>Strategy session</option><option>Content shoot</option><option>Check-in call</option><option>Project review</option><option>Other</option></select>
+      </div>
+      <div class="fg full"><label class="flabel">Notes</label><textarea id="bm-notes" placeholder="Details, location, agenda..." style="height:64px"></textarea></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" id="save-booking-btn" onclick="saveBooking()">Save booking</button>
+      <button class="btn btn-secondary" onclick="closeBModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://glzorptkitwpafpzznjg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem9ycHRraXR3cGFmcHp6bmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDY4NjUsImV4cCI6MjA5NjAyMjg2NX0.VplXHxT2iLSqb_7G9p7bVBoqxyzCjwO3Q_Melq7tAGw';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+const STAGES = ['New Lead','Contacted','Call Booked','Proposal Sent','Won','In Progress','Delivered','Follow-up'];
+const SH = ['sh0','sh1','sh2','sh3','sh4','sh5','sh6','sh7'];
+const PC = ['p0','p1','p2','p3','p4','p5','p6','p7'];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let leads = [];
+let clients = [];
+let bookings = [];
+let activePanelName = 'dashboard';
+
+// ─── UI HELPERS ──────────────────────────────────────────────────────────────
+function setSyncing(v, err){
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if(err){ dot.className='sync-dot error'; lbl.textContent='Error'; return; }
+  if(v){ dot.className='sync-dot syncing'; lbl.textContent='Syncing...'; }
+  else { dot.className='sync-dot'; lbl.textContent='Connected'; }
+}
+
+function toast(msg, type='info'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.className='toast', 3500);
+}
+
+function showGlobalError(msg){
+  const el = document.getElementById('global-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function clearGlobalError(){
+  document.getElementById('global-error').style.display = 'none';
+}
+
+function parseVal(v){ return parseInt((v||'0').replace(/[$,]/g,''))||0; }
+
+function esc(str){ return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmtDate(dt){
+  if(!dt) return '—';
+  try{ return new Date(dt).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+  catch(e){ return dt; }
+}
+
+// ─── PANEL NAVIGATION ────────────────────────────────────────────────────────
+function showPanel(name, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const panel = document.getElementById('panel-'+name);
+  if(!panel) return;
+  panel.classList.add('active');
+  if(btn) btn.classList.add('active');
+  activePanelName = name;
+  if(name==='dashboard') renderDashboard();
+  else if(name==='pipeline') renderPipeline();
+  else if(name==='clients') renderClients();
+  else if(name==='bookings') renderBookings();
+}
+
+// ─── SYNC ─────────────────────────────────────────────────────────────────
+async function syncAll(){
+  setSyncing(true);
+  clearGlobalError();
+  try{
+    const [lr, cr, br] = await Promise.all([
+      sb.from('leads').select('*').order('created_at',{ascending:false}),
+      sb.from('clients').select('*').order('created_at',{ascending:false}),
+      sb.from('bookings').select('*').order('booking_date',{ascending:true})
+    ]);
+    if(lr.error) throw new Error('Leads: ' + lr.error.message);
+    if(cr.error) throw new Error('Clients: ' + cr.error.message);
+    if(br.error) throw new Error('Bookings: ' + br.error.message);
+    leads = lr.data || [];
+    clients = cr.data || [];
+    bookings = br.data || [];
+    document.getElementById('lead-badge').textContent = leads.length;
+    document.getElementById('client-badge').textContent = clients.length;
+    if(activePanelName==='dashboard') renderDashboard();
+    else if(activePanelName==='pipeline') renderPipeline();
+    else if(activePanelName==='clients') renderClients();
+    else if(activePanelName==='bookings') renderBookings();
+    setSyncing(false);
+  } catch(e){
+    setSyncing(false, true);
+    const msg = e.message || String(e);
+    showGlobalError('Database error: ' + msg + '. Check Supabase RLS policies — run the SQL in the setup instructions to allow anon access.');
+    console.error('Sync error:', e);
+  }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const active = leads.filter(l=>l.stage===4||l.stage===5||l.stage===6);
+  const rev = active.reduce((a,l)=>a+parseVal(l.estimated_value),0);
+  const won = leads.filter(l=>l.stage===4).length;
+  const pipe = leads.reduce((a,l)=>a+parseVal(l.estimated_value),0);
+  document.getElementById('m-rev').textContent = '$'+rev.toLocaleString();
+  document.getElementById('m-rev-sub').textContent = active.length + ' active client'+(active.length!==1?'s':'');
+  document.getElementById('m-leads').textContent = leads.length;
+  document.getElementById('m-won').textContent = won;
+  document.getElementById('m-pipe').textContent = '$'+pipe.toLocaleString();
+
+  // Stage bars
+  const stagesEl = document.getElementById('dash-stages');
+  if(!leads.length){
+    stagesEl.innerHTML = '<div class="empty">No leads yet.<br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="showPanel(\'new-lead\',null)">Add your first lead</button></div>';
+  } else {
+    stagesEl.innerHTML = STAGES.map((s,i)=>{
+      const c = leads.filter(l=>l.stage===i).length;
+      const pct = leads.length ? Math.round((c/leads.length)*100) : 0;
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12px">
+        <span style="width:88px;color:#888;flex-shrink:0">${s}</span>
+        <div style="flex:1;height:6px;background:#f0f0ee;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#7F77DD;border-radius:3px"></div></div>
+        <span style="width:16px;text-align:right;font-weight:500;color:#111">${c}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Recent leads
+  const recentEl = document.getElementById('dash-recent');
+  if(!leads.length){
+    recentEl.innerHTML = '<div class="empty">No leads yet</div>';
+  } else {
+    recentEl.innerHTML = leads.slice(0,6).map(l=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f3">
+        <div>
+          <div style="font-size:13px;font-weight:500">${esc(l.first_name||'')} ${esc(l.last_name||'')}</div>
+          <div style="font-size:11px;color:#888">${esc(l.business_name||'—')}</div>
+        </div>
+        <span class="pill ${PC[l.stage]||'p0'}">${STAGES[l.stage]||'New'}</span>
+      </div>`).join('');
+  }
+
+  // Upcoming bookings
+  const booksEl = document.getElementById('dash-bookings');
+  const now = new Date();
+  const upcoming = bookings.filter(b=>b.booking_date && new Date(b.booking_date)>=now).slice(0,4);
+  if(!upcoming.length){
+    booksEl.innerHTML = `<div class="empty">No upcoming bookings.<br><button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="openBookingModal(null)">Schedule one</button></div>`;
+  } else {
+    booksEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">${upcoming.map(b=>`
+      <div style="border:1px solid #e5e5e3;border-radius:10px;padding:14px;background:#fff">
+        <div style="font-size:13px;font-weight:500;margin-bottom:3px">${fmtDate(b.booking_date)}</div>
+        <div style="font-size:12px;color:#888;margin-bottom:6px">${esc(b.notes||'No notes')}</div>
+        <span class="pill p2">${esc(b.booking_type||'Meeting')}</span>
+      </div>`).join('')}</div>`;
+  }
+}
+
+// ─── PIPELINE ────────────────────────────────────────────────────────────────
+function renderPipeline(){
+  const board = document.getElementById('pipeline-board');
+  if(!leads.length){
+    board.innerHTML = '<div class="empty" style="width:100%">No leads yet.<br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="showPanel(\'new-lead\',null)">Add your first lead</button></div>';
+    return;
+  }
+  board.innerHTML = '';
+  STAGES.forEach((sName,si)=>{
+    const sl = leads.filter(l=>l.stage===si);
+    const col = document.createElement('div');
+    col.className = 'stage-col';
+    const cards = sl.map(l=>{
+      const name = esc((l.first_name||'')+' '+(l.last_name||''));
+      const biz = esc(l.business_name||'—');
+      const val = esc(l.estimated_value||'TBD');
+      const backBtn = si>0 ? `<button class="mbtn" data-id="${l.id}" data-dir="-1" onclick="moveLead(this)">← Back</button>` : '';
+      const nextBtn = si<7 ? `<button class="mbtn" data-id="${l.id}" data-dir="1" onclick="moveLead(this)">Next →</button>` : '';
+      return `<div class="lcard" data-id="${l.id}" onclick="openLeadModal(this.dataset.id)">
+        <div class="lcard-name">${name}</div>
+        <div class="lcard-biz">${biz}</div>
+        <div class="lcard-val">${val}</div>
+        <div class="lcard-btns">${backBtn}${nextBtn}</div>
+      </div>`;
+    }).join('');
+    col.innerHTML = `<div class="stage-head ${SH[si]}">${sName}<span>${sl.length}</span></div><div class="stage-body">${cards}</div>`;
+    board.appendChild(col);
+  });
+}
+
+async function moveLead(btn){
+  btn.stopPropagation && btn.stopPropagation();
+  const id = btn.dataset.id;
+  const dir = parseInt(btn.dataset.dir);
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  const newStage = Math.max(0,Math.min(7,l.stage+dir));
+  setSyncing(true);
+  const {error} = await sb.from('leads').update({stage:newStage}).eq('id',id);
+  setSyncing(false);
+  if(error){ toast('Update failed: '+error.message,'error'); return; }
+  l.stage = newStage;
+  renderPipeline();
+  renderDashboard();
+  toast('Moved to '+STAGES[newStage],'success');
+}
+
+function openLeadModal(id){
+  const l = leads.find(x=>x.id===id);
+  if(!l) return;
+  const name = (l.first_name||'')+' '+(l.last_name||'');
+  document.getElementById('lm-name').textContent = name.trim() || 'Lead';
+  document.getElementById('lm-body').innerHTML = `
+    <div style="margin-bottom:14px"><span class="pill ${PC[l.stage]||'p0'}">${STAGES[l.stage]||'New Lead'}</span></div>
+    <div class="detail-row"><span class="detail-label">Business</span><span class="detail-val">${esc(l.business_name||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-val">${esc(l.business_type||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${esc(l.email||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-val">${esc(l.phone||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Service</span><span class="detail-val">${esc(l.service||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Value</span><span class="detail-val" style="color:#1D9E75">${esc(l.estimated_value||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Source</span><span class="detail-val">${esc(l.source||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Added</span><span class="detail-val">${l.created_at?new Date(l.created_at).toLocaleDateString():'—'}</span></div>
+    ${l.notes?`<div style="font-size:12px;color:#888;margin-top:12px;margin-bottom:4px">Notes</div><div class="notes-box">${esc(l.notes)}</div>`:''}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <label class="flabel" style="flex-shrink:0">Move to:</label>
+      <select id="lm-stage" style="flex:1;min-width:140px;padding:7px 10px;border-radius:8px;border:1px solid #d5d5d3;font-size:13px;font-family:inherit">
+        ${STAGES.map((s,i)=>`<option value="${i}"${i===l.stage?' selected':''}>${s}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="moveLeadFromModal('${id}')">Move</button>
+    </div>
+    <div id="lm-del-confirm" class="confirm-box">
+      <p>Delete this lead permanently? This cannot be undone.</p>
+      <div class="btn-row">
+        <button class="btn btn-danger" onclick="deleteLead('${id}')">Yes, delete</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('lm-del-confirm').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-danger btn-sm" onclick="document.getElementById('lm-del-confirm').style.display='block'">Delete lead</button>
+    </div>`;
+  document.getElementById('lead-modal').classList.add('open');
+}
+
+async function moveLeadFromModal(id){
+  const newStage = parseInt(document.getElementById('lm-stage').value);
+  setSyncing(true);
+  const {error} = await sb.from('leads').update({stage:newStage}).eq('id',id);
+  setSyncing(false);
+  if(error){ toast('Update failed: '+error.message,'error'); return; }
+  const l = leads.find(x=>x.id===id);
+  if(l) l.stage = newStage;
+  closeLModal();
+  renderPipeline();
+  renderDashboard();
+  toast('Moved to '+STAGES[newStage],'success');
+}
+
+async function deleteLead(id){
+  setSyncing(true);
+  const {error} = await sb.from('leads').delete().eq('id',id);
+  setSyncing(false);
+  if(error){ toast('Delete failed: '+error.message,'error'); return; }
+  leads = leads.filter(x=>x.id!==id);
+  closeLModal();
+  renderPipeline();
+  renderDashboard();
+  document.getElementById('lead-badge').textContent = leads.length;
+  toast('Lead deleted','success');
+}
+
+function closeLModal(){ document.getElementById('lead-modal').classList.remove('open'); }
+
+// ─── CLIENTS ─────────────────────────────────────────────────────────────────
+function renderClients(){
+  const grid = document.getElementById('clients-grid');
+  // Show clients table first, fall back to won/active leads if clients table empty
+  const activeLeads = leads.filter(l=>l.stage===4||l.stage===5||l.stage===6);
+  const data = clients.length ? clients : activeLeads;
+  if(!data.length){
+    grid.innerHTML = '<div class="empty">No active clients yet.<br>Move leads to <strong>Won</strong> to see them here.</div>';
+    return;
+  }
+  grid.innerHTML = data.map(c=>{
+    const name = c.contact_name || ((c.first_name||'')+' '+(c.last_name||'')).trim();
+    const biz = c.business_name||'—';
+    const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+    const val = c.monthly_value ? '$'+Number(c.monthly_value).toLocaleString()+'/mo' : (c.estimated_value||'—');
+    const stageIdx = c.stage!=null ? c.stage : 5;
+    const pillCls = PC[stageIdx]||'p4';
+    const stageLabel = c.status || STAGES[stageIdx] || 'Active';
+    return `<div class="ccard" data-id="${c.id}" onclick="openClientModal(this.dataset.id)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="avatar">${initials}</div>
+        <div><div style="font-size:14px;font-weight:500;color:#111">${esc(name)}</div><div style="font-size:12px;color:#888">${esc(biz)}</div></div>
+      </div>
+      <div style="font-size:12px;color:#888;margin-bottom:3px">${esc(c.business_type||c.type||'—')}</div>
+      <div style="font-size:12px;color:#888;margin-bottom:10px">${esc(c.package||c.service||'—')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:15px;font-weight:500;color:#1D9E75">${esc(val)}</span>
+        <span class="pill ${pillCls}">${esc(stageLabel)}</span>
+      </div>
+      ${c.notes?`<div style="margin-top:10px;padding:8px;background:#f8f8f6;border-radius:6px;font-size:11px;color:#888;line-height:1.5">${esc(c.notes)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openClientModal(id){
+  const data = clients.length ? clients : leads;
+  const c = data.find(x=>x.id===id);
+  if(!c) return;
+  const name = c.contact_name || ((c.first_name||'')+' '+(c.last_name||'')).trim();
+  document.getElementById('cm-name').textContent = name || 'Client';
+  document.getElementById('cm-body').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Business</span><span class="detail-val">${esc(c.business_name||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${esc(c.email||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-val">${esc(c.phone||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Package</span><span class="detail-val">${esc(c.package||c.service||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Value</span><span class="detail-val" style="color:#1D9E75">${c.monthly_value?'$'+Number(c.monthly_value).toLocaleString()+'/mo':(c.estimated_value||'—')}</span></div>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val">${esc(c.status||STAGES[c.stage]||'Active')}</span></div>
+    ${c.notes?`<div style="font-size:12px;color:#888;margin-top:12px;margin-bottom:4px">Notes</div><div class="notes-box">${esc(c.notes)}</div>`:''}
+    <div style="margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="closeCModal();openBookingModal('${id}')">Schedule booking</button>
+    </div>`;
+  document.getElementById('client-modal').classList.add('open');
+}
+
+function closeCModal(){ document.getElementById('client-modal').classList.remove('open'); }
+
+// ─── BOOKINGS ────────────────────────────────────────────────────────────────
+function renderBookings(){
+  const tbody = document.getElementById('bookings-tbody');
+  if(!bookings.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:28px;color:#888">No bookings yet. Create your first booking above.</td></tr>';
+    return;
+  }
+  const now = new Date();
+  tbody.innerHTML = bookings.map(b=>{
+    const past = b.booking_date && new Date(b.booking_date)<now;
+    const statusPill = b.status==='cancelled'?'p0':b.status==='confirmed'?'p4':'p1';
+    return `<tr style="${past?'opacity:0.55':''}">
+      <td style="font-weight:${past?'400':'500'}">${fmtDate(b.booking_date)}</td>
+      <td><span class="pill p2">${esc(b.booking_type||'Meeting')}</span></td>
+      <td style="color:#888;font-size:12px">${esc(b.notes||'—')}</td>
+      <td><span class="pill ${statusPill}">${esc(b.status||'confirmed')}</span></td>
+      <td>
+        <div id="bdel-${b.id}" style="display:inline-flex;gap:6px;align-items:center">
+          <button class="btn btn-danger btn-sm" onclick="showBookingDelConfirm('${b.id}')">Delete</button>
+        </div>
+        <div id="bdel-confirm-${b.id}" style="display:none;margin-top:6px">
+          <span style="font-size:12px;color:#A32D2D;margin-right:8px">Sure?</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteBooking('${b.id}')">Yes</button>
+          <button class="btn btn-secondary btn-sm" style="margin-left:4px" onclick="document.getElementById('bdel-confirm-${b.id}').style.display='none'">No</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showBookingDelConfirm(id){
+  document.getElementById('bdel-confirm-'+id).style.display='block';
+}
+
+function openBookingModal(preselectedClientId){
+  const data = clients.length ? clients : leads.filter(l=>l.stage===4||l.stage===5||l.stage===6);
+  const sel = document.getElementById('bm-client');
+  sel.innerHTML = '<option value="">No specific client</option>' + data.map(c=>{
+    const name = c.contact_name || ((c.first_name||'')+' '+(c.last_name||'')).trim();
+    const selected = preselectedClientId && c.id===preselectedClientId ? ' selected' : '';
+    return `<option value="${c.id}"${selected}>${esc(name)} — ${esc(c.business_name||'')}</option>`;
+  }).join('');
+  document.getElementById('bm-error').style.display='none';
+  document.getElementById('bm-date').value='';
+  document.getElementById('bm-time').value='09:00';
+  document.getElementById('bm-notes').value='';
+  document.getElementById('booking-modal').classList.add('open');
+}
+
+async function saveBooking(){
+  const dateVal = document.getElementById('bm-date').value;
+  const timeVal = document.getElementById('bm-time').value || '09:00';
+  const errEl = document.getElementById('bm-error');
+  if(!dateVal){ errEl.textContent='Please select a date.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  const bookingDate = dateVal+'T'+timeVal+':00';
+  const clientId = document.getElementById('bm-client').value || null;
+  const btn = document.getElementById('save-booking-btn');
+  btn.disabled=true; btn.textContent='Saving...';
+  setSyncing(true);
+  const {data,error} = await sb.from('bookings').insert([{
+    client_id: clientId,
+    booking_date: bookingDate,
+    booking_type: document.getElementById('bm-type').value,
+    status: 'confirmed',
+    notes: document.getElementById('bm-notes').value.trim()
+  }]).select();
+  setSyncing(false);
+  btn.disabled=false; btn.textContent='Save booking';
+  if(error){ errEl.textContent='Error: '+error.message; errEl.style.display='block'; return; }
+  if(data) bookings.push(...data);
+  bookings.sort((a,b)=>new Date(a.booking_date)-new Date(b.booking_date));
+  closeBModal();
+  renderBookings();
+  renderDashboard();
+  toast('Booking saved!','success');
+}
+
+async function deleteBooking(id){
+  setSyncing(true);
+  const {error} = await sb.from('bookings').delete().eq('id',id);
+  setSyncing(false);
+  if(error){ toast('Delete failed: '+error.message,'error'); return; }
+  bookings = bookings.filter(x=>x.id!==id);
+  renderBookings();
+  renderDashboard();
+  toast('Booking deleted','success');
+}
+
+function closeBModal(){
+  document.getElementById('booking-modal').classList.remove('open');
+  document.getElementById('bm-error').style.display='none';
+}
+
+// ─── NEW LEAD ─────────────────────────────────────────────────────────────────
+async function submitLead(){
+  const first = document.getElementById('fl-first').value.trim();
+  const biz = document.getElementById('fl-biz').value.trim();
+  const errEl = document.getElementById('lead-error');
+  const sucEl = document.getElementById('lead-success');
+  errEl.style.display='none'; sucEl.style.display='none';
+  if(!first){ errEl.textContent='First name is required.'; errEl.style.display='block'; return; }
+  if(!biz){ errEl.textContent='Business name is required.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='Saving...';
+  setSyncing(true);
+  const {data,error} = await sb.from('leads').insert([{
+    first_name: first,
+    last_name: document.getElementById('fl-last').value.trim(),
+    email: document.getElementById('fl-email').value.trim(),
+    phone: document.getElementById('fl-phone').value.trim(),
+    business_name: biz,
+    business_type: document.getElementById('fl-type').value,
+    service: document.getElementById('fl-service').value,
+    estimated_value: document.getElementById('fl-value').value.trim(),
+    source: document.getElementById('fl-source').value,
+    notes: document.getElementById('fl-notes').value.trim(),
+    stage: 0
+  }]).select();
+  setSyncing(false);
+  btn.disabled=false; btn.textContent='Save to database';
+  if(error){
+    errEl.textContent = 'Save failed: '+error.message+(error.code==='42501'?' — Check Supabase RLS policies (run the setup SQL).':'');
+    errEl.style.display='block';
+    return;
+  }
+  if(data) leads.unshift(...data);
+  ['fl-first','fl-last','fl-email','fl-phone','fl-biz','fl-value','fl-notes'].forEach(id=>document.getElementById(id).value='');
+  ['fl-type','fl-service','fl-source'].forEach(id=>document.getElementById(id).value='');
+  sucEl.style.display='block';
+  setTimeout(()=>sucEl.style.display='none',5000);
+  document.getElementById('lead-badge').textContent=leads.length;
+  toast('Lead saved!','success');
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+syncAll();
+</script>
+</body>
+</html>
